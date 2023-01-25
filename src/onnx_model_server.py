@@ -12,23 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+import tempfile
+import zipfile
 from typing import Any, Dict, List, Tuple, Union
 
-import os
-import zipfile
-import tempfile
+import mlrun
 import numpy as np
 import onnx
 import onnxruntime
-
-import mlrun
 from mlrun.serving.v2_serving import V2ModelServer
 from transformers import AutoTokenizer
 
-LABELS = {
-    0 : "NEGATIVE",
-    1 : "POSITIVE"
-}
+LABELS = {0: "NEGATIVE", 1: "POSITIVE"}
 
 
 def _get_model_dir(model_uri: str):
@@ -37,19 +33,19 @@ def _get_model_dir(model_uri: str):
     # Unzip the Model:
     with zipfile.ZipFile(model_file, "r") as zip_file:
         zip_file.extractall(model_dir)
-    
+
     # Unzip the Tokenizer:
-    tokenizer_file = extra_data['tokenizer'].local()
+    tokenizer_file = extra_data["tokenizer"].local()
     with zipfile.ZipFile(tokenizer_file, "r") as zip_file:
         zip_file.extractall(model_dir)
-        
-    return model_dir, model_artifact.extra_data['tokenizer']
+
+    return model_dir, model_artifact.extra_data["tokenizer"]
 
 
 def preprocess(text: Union[str, Dict]) -> Dict:
     """
     Converting a simple text into a structured body for the serving function
-    
+
     :param text: The text to predict
     """
     return {"inputs": [str(text)]}
@@ -58,12 +54,15 @@ def preprocess(text: Union[str, Dict]) -> Dict:
 def postprocess(model_response: Dict) -> List:
     """
     Transfering the prediction to the gradio interface.
-    
+
     :param model_response: A dict with the model output
     """
     output = model_response["outputs"][0]
-    prediction = LABELS[int(output['label'])]
-    return ["The sentiment is " + prediction, "The prediction score is " + str(output['score'])]
+    prediction = LABELS[int(output["label"])]
+    return [
+        "The sentiment is " + prediction,
+        "The prediction score is " + str(output["score"]),
+    ]
 
 
 class ONNXModelServer(V2ModelServer):
@@ -73,15 +72,15 @@ class ONNXModelServer(V2ModelServer):
     """
 
     def __init__(
-            self,
-            context: mlrun.MLClientCtx,
-            name: str,
-            model: onnx.ModelProto = None,
-            model_path: str = None,
-            model_name: str = None,
-            execution_providers: List[Union[str, Tuple[str, Dict[str, Any]]]] = None,
-            protocol: str = None,
-            **class_args,
+        self,
+        context: mlrun.MLClientCtx,
+        name: str,
+        model: onnx.ModelProto = None,
+        model_path: str = None,
+        model_name: str = None,
+        execution_providers: List[Union[str, Tuple[str, Dict[str, Any]]]] = None,
+        protocol: str = None,
+        **class_args,
     ):
         """
         Initialize a serving class for an onnx.ModelProto model.
@@ -133,14 +132,11 @@ class ONNXModelServer(V2ModelServer):
             if execution_providers is None
             else execution_providers
         )
-    
+
         # Prepare inference parameters:
         self._inference_session = None  # type: onnxruntime.InferenceSession
         self._input_layers = None  # type: List[str]
         self._output_layers = None  # type: List[str]
-        
-        
-        
 
     def load(self):
         """
@@ -150,7 +146,7 @@ class ONNXModelServer(V2ModelServer):
         self._tokenizer = AutoTokenizer.from_pretrained(model_dir)
         # initialize the onnx run time session:
         self._inference_session = onnxruntime.InferenceSession(
-            os.path.join(model_dir, 'model_optimized.onnx'),
+            os.path.join(model_dir, "model_optimized.onnx"),
             providers=self._execution_providers,
         )
 
@@ -199,12 +195,15 @@ class ONNXModelServer(V2ModelServer):
         """preprocess the event body before validate and action"""
 
         tokenized_samples: Dict = self._tokenizer(request["inputs"], truncation=True)
-        request["inputs"] = [val if isinstance(val[0], list) else [val] for val in tokenized_samples.values()]
+        request["inputs"] = [
+            val if isinstance(val[0], list) else [val]
+            for val in tokenized_samples.values()
+        ]
         return request
 
     def postprocess(self, request: Dict) -> Dict:
         print(f"request {request}")
-        outputs = request['outputs'][0].tolist()
+        outputs = request["outputs"][0].tolist()
         chosen_label = np.argmax(outputs, axis=-1)[0].item()
         print(chosen_label)
         p = outputs[0][chosen_label]

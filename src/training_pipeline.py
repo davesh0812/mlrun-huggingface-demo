@@ -1,24 +1,21 @@
+import tempfile
+import zipfile
 from typing import Dict, List, Optional
 
+import mlrun
 import numpy as np
 import pandas as pd
-import zipfile
-import tempfile
-
-from mlrun.frameworks.huggingface import apply_mlrun
 from datasets import Dataset, load_dataset, load_metric
+from mlrun.frameworks.huggingface import apply_mlrun
 from optimum.onnxruntime import ORTModelForSequenceClassification, ORTOptimizer
 from optimum.onnxruntime.configuration import OptimizationConfig
 from transformers import (
-    PreTrainedTokenizer,
     AutoModelForSequenceClassification,
     AutoTokenizer,
     DataCollatorWithPadding,
     Trainer,
     TrainingArguments,
 )
-
-import mlrun
 
 
 def _get_model_dir(model_uri: str):
@@ -27,14 +24,14 @@ def _get_model_dir(model_uri: str):
     # Unzip the Model:
     with zipfile.ZipFile(model_file, "r") as zip_file:
         zip_file.extractall(model_dir)
-    
+
     # Unzip the Tokenizer:
-    tokenizer_file = extra_data['tokenizer'].local()
+    tokenizer_file = extra_data["tokenizer"].local()
     with zipfile.ZipFile(tokenizer_file, "r") as zip_file:
         zip_file.extractall(model_dir)
-        
-    return model_dir, model_artifact.extra_data['tokenizer']
-    
+
+    return model_dir, model_artifact.extra_data["tokenizer"]
+
 
 def _edit_columns(
     dataset: Dataset,
@@ -61,9 +58,7 @@ def _compute_metrics(eval_pred):
     return {"accuracy": accuracy, "f1": f1}
 
 
-@mlrun.handler(
-    outputs=["train_dataset:dataset", "test_dataset:dataset"]
-)
+@mlrun.handler(outputs=["train_dataset:dataset", "test_dataset:dataset"])
 def prepare_dataset(
     dataset_name: str = "Shayanvsf/US_Airline_Sentiment",
     drop_columns: Optional[List[str]] = [
@@ -79,18 +74,16 @@ def prepare_dataset(
     :param rename_columns:  The columns to rename in the dataset.
 
     """
-    
+
     # Loading and editing dataset:
     dataset = load_dataset(dataset_name)
-    small_train_dataset = (
-        dataset["train"].shuffle(seed=42).select(list(range(3000)))
+    small_train_dataset = dataset["train"].shuffle(seed=42).select(list(range(3000)))
+    small_train_dataset = _edit_columns(
+        small_train_dataset, drop_columns, rename_columns
     )
-    small_train_dataset = _edit_columns(small_train_dataset, drop_columns, rename_columns)
-    small_test_dataset = (
-        dataset["test"].shuffle(seed=42).select(list(range(300)))
-    )
+    small_test_dataset = dataset["test"].shuffle(seed=42).select(list(range(300)))
     small_test_dataset = _edit_columns(small_test_dataset, drop_columns, rename_columns)
-    
+
     return small_train_dataset.to_pandas(), small_test_dataset.to_pandas()
 
 
@@ -119,11 +112,11 @@ def train(
 
     def preprocess_function(examples):
         return tokenizer(examples["text"], truncation=True)
-    
+
     # Convert pd.DataFrame to datasets.Dataset:
     train_dataset = Dataset.from_pandas(train_dataset)
     test_dataset = Dataset.from_pandas(test_dataset)
-    
+
     # Mapping datasets with the tokenizer:
     tokenized_train = train_dataset.map(preprocess_function, batched=True)
     tokenized_test = test_dataset.map(preprocess_function, batched=True)
@@ -160,16 +153,14 @@ def train(
         compute_metrics=_compute_metrics,
     )
 
-    apply_mlrun(trainer, model_name='trained_model')
+    apply_mlrun(trainer, model_name="trained_model")
 
     # Apply training with evaluation:
     train_output = trainer.train()
+    print(train_output)
 
 
-def optimize(
-    model_path: str,
-    target_dir: str = "./optimized"
-):
+def optimize(model_path: str, target_dir: str = "./optimized"):
     """
     Optimizing the transformer model using ONNX optimization.
     :param model_path: The path of the model to optimize.
@@ -183,11 +174,12 @@ def optimize(
     ort_model = ORTModelForSequenceClassification.from_pretrained(
         model_dir, from_transformers=True
     )
-    
+
     # Creating an ONNX-Runtime optimizer from ONNX model:
     optimizer = ORTOptimizer.from_pretrained(ort_model)
-    
-    apply_mlrun(optimizer, model_name='optimized_model', extra_data={"tokenizer": tokenizer})
+
+    apply_mlrun(
+        optimizer, model_name="optimized_model", extra_data={"tokenizer": tokenizer}
+    )
     # Optimizing and saving the ONNX model:
     optimizer.optimize(save_dir=target_dir, optimization_config=optimization_config)
-

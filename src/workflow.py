@@ -1,6 +1,5 @@
 import mlrun
 from kfp import dsl
-from typing import List, Dict, Optional
 
 
 @dsl.pipeline(name="Sentiment Analysis Pipeline")
@@ -11,7 +10,7 @@ def kfpipeline(
 ):
     # Get our project object:
     project = mlrun.get_current_project()
-    
+
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="training",
@@ -36,7 +35,7 @@ def kfpipeline(
         },
         outputs=["model"],
     )
-    
+
     # Optimization:
     optimization_run = mlrun.run_function(
         function="training",
@@ -49,11 +48,13 @@ def kfpipeline(
     # Get the function:
     serving_function = project.get_function("serving")
     graph = serving_function.set_topology("flow", engine="async")
-    
+
     # Build the serving graph:
-    graph.to(handler="preprocess", name="preprocess")\
-         .to(class_name="ONNXModelServer", name="sentiment-analyzer", model_path=str(optimization_run.outputs["model"]))\
-         .to(handler="postprocess", name="postprocess").respond()
-    
+    graph.to(handler="preprocess", name="preprocess").to(
+        class_name="ONNXModelServer",
+        name="sentiment-analyzer",
+        model_path=str(optimization_run.outputs["model"]),
+    ).to(handler="postprocess", name="postprocess").respond()
+
     # Deploy the serving function:
     mlrun.deploy_function("serving")
