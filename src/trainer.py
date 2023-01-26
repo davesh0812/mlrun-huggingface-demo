@@ -116,8 +116,8 @@ def train(
     # apply_mlrun(trainer, model_name="trained_model")
 
     # Apply training with evaluation:
-    train_output = trainer.train()
-    print(train_output)
+    trainer.train()
+    return model
 
 
 def optimize(model_path: str, target_dir: str = "./optimized"):
