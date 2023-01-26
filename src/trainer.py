@@ -47,7 +47,7 @@ def _compute_metrics(eval_pred):
     return {"accuracy": accuracy, "f1": f1}
 
 
-@mlrun.handler()
+@mlrun.handler(outputs=["model"])
 def train(
     train_dataset: pd.DataFrame,
     test_dataset: pd.DataFrame,
@@ -95,7 +95,7 @@ def train(
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=2,
+        num_train_epochs=1,
         weight_decay=0.01,
         push_to_hub=False,
         evaluation_strategy="epoch",
