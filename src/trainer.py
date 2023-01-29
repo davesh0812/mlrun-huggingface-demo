@@ -46,7 +46,7 @@ def _compute_metrics(eval_pred):
     return {"accuracy": accuracy, "f1": f1}
 
 
-@mlrun.handler(outputs=["model"])
+@mlrun.handler()
 def train(
     train_dataset: pd.DataFrame,
     test_dataset: pd.DataFrame,
