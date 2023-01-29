@@ -6,8 +6,7 @@ import mlrun
 import numpy as np
 import pandas as pd
 from datasets import Dataset, load_metric
-
-# from mlrun.frameworks.huggingface import apply_mlrun
+from mlrun.frameworks.huggingface import apply_mlrun
 from optimum.onnxruntime import ORTModelForSequenceClassification, ORTOptimizer
 from optimum.onnxruntime.configuration import OptimizationConfig
 from transformers import (
@@ -113,11 +112,10 @@ def train(
         compute_metrics=_compute_metrics,
     )
 
-    # apply_mlrun(trainer, model_name="trained_model")
+    apply_mlrun(trainer, model_name="trained_model")
 
     # Apply training with evaluation:
     trainer.train()
-    return model
 
 
 def optimize(model_path: str, target_dir: str = "./optimized"):
@@ -138,8 +136,8 @@ def optimize(model_path: str, target_dir: str = "./optimized"):
     # Creating an ONNX-Runtime optimizer from ONNX model:
     optimizer = ORTOptimizer.from_pretrained(ort_model)
 
-    # apply_mlrun(
-    #     optimizer, model_name="optimized_model", extra_data={"tokenizer": tokenizer}
-    # )
+    apply_mlrun(
+        optimizer, model_name="optimized_model", extra_data={"tokenizer": tokenizer}
+    )
     # Optimizing and saving the ONNX model:
     optimizer.optimize(save_dir=target_dir, optimization_config=optimization_config)
