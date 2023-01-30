@@ -117,10 +117,12 @@ class ONNXModelServer(V2ModelServer):
             input_layer.name for input_layer in self._inference_session.get_inputs()
         ]
 
+        print(self._input_layers)
         # Get the outputs layers names:
         self._output_layers = [
             output_layer.name for output_layer in self._inference_session.get_outputs()
         ]
+        print(self._output_layers)
 
     def predict(self, request: Dict[str, Any]) -> np.ndarray:
         """
