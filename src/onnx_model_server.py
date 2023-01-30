@@ -168,7 +168,6 @@ class ONNXModelServer(V2ModelServer):
         print(f"request {request}")
         outputs = request["outputs"][0].tolist()
         chosen_label = np.argmax(outputs, axis=-1)[0].item()
-        print(chosen_label)
         p = outputs[0][chosen_label]
         request["outputs"] = [{"label": chosen_label, "score": p}]
 
