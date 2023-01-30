@@ -44,7 +44,7 @@ def model_server_tester(
         if err_count == max_error:
             raise ValueError(f"reached error max limit = {max_error}")
         count += 1
-        event_data = dataset.iloc[i].to_dict()['text']
+        event_data = dataset.iloc[i].to_dict()["text"]
         try:
             start = datetime.now()
             resp = requests.post(f"{endpoint}/predict", json=event_data)
