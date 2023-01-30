@@ -137,7 +137,7 @@ class ONNXModelServer(V2ModelServer):
 
 
         # Read the inputs from the request:
-        inputs = request["inputs"]
+        inputs = request["inputs"] + [None]
 
         # Infer the inputs through the model:
         return self._inference_session.run(
