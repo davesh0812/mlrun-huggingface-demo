@@ -21,7 +21,7 @@ def kfpipeline(
 
     # Training:
     training_run = mlrun.run_function(
-        function="training",
+        function="trainer",
         name="training",
         inputs={
             "train_dataset": prepare_dataset_run.outputs["train_dataset"],
