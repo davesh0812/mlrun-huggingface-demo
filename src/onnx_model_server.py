@@ -117,7 +117,6 @@ class ONNXModelServer(V2ModelServer):
             input_layer.name for input_layer in self._inference_session.get_inputs()
         ]
 
-        print(self._input_layers)
         # Get the outputs layers names:
         self._output_layers = [
             output_layer.name for output_layer in self._inference_session.get_outputs()
@@ -132,12 +131,8 @@ class ONNXModelServer(V2ModelServer):
 
         :return: The ONNXRunTime session returned output on the given inputs.
         """
-        print(self._input_layers)
-        print(self._output_layers)
-
-
         # Read the inputs from the request:
-        inputs = request["inputs"] + [None]
+        inputs = request["inputs"]
 
         # Infer the inputs through the model:
         return self._inference_session.run(
@@ -158,21 +153,26 @@ class ONNXModelServer(V2ModelServer):
         """
         return f"The '{self.model.name}' model serving function named '{self.name}'"
 
-    def preprocess(self, text: Union[str, Dict], operation) -> Dict:
-        """
-        Converting a simple text into a structured body for the serving function
+    def preprocess(self, request: Dict, operation) -> Dict:
+        """preprocess the event body before validate and action"""
 
-        :param text: The text to predict
-        """
-        return {"inputs": [str(text)]}
+        request = {"inputs": [str(request)]}
+        tokenized_samples: Dict = self._tokenizer(request["inputs"], truncation=True)
+        request["inputs"] = [
+            val if isinstance(val[0], list) else [val]
+            for val in tokenized_samples.values()
+        ]
+        return request
 
-    def postprocess(self, model_response: Dict) -> List:
-        """
-        Transfering the prediction to the gradio interface.
+    def postprocess(self, request: Dict) -> Dict:
+        print(f"request {request}")
+        outputs = request["outputs"][0].tolist()
+        chosen_label = np.argmax(outputs, axis=-1)[0].item()
+        print(chosen_label)
+        p = outputs[0][chosen_label]
+        request["outputs"] = [{"label": chosen_label, "score": p}]
 
-        :param model_response: A dict with the model output
-        """
-        output = model_response["outputs"][0]
+        output = request["outputs"][0]
         prediction = LABELS[int(output["label"])]
         return [
             "The sentiment is " + prediction,
