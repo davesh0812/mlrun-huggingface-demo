@@ -52,4 +52,16 @@ def kfpipeline(
     )
 
     # Deploy the serving function:
-    mlrun.deploy_function("serving")
+    deploy_return = mlrun.deploy_function("serving")
+
+    # Model server tester
+    mlrun.run_function(
+        function="server_tester",
+        name="server_tester",
+        inputs={"dataset": prepare_dataset_run.outputs["test_dataset"]},
+        params={
+            "label_column": "label",
+            "endpoint": deploy_return.outputs["endpoint"],
+        },
+        auto_build=True,
+    ).after(deploy_return)
