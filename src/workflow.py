@@ -47,7 +47,7 @@ def kfpipeline(
 
     # Get the function:
     serving_function = project.get_function("serving")
-    serving_function.spec.graph["predict_fare"].class_args["model_path"] = str(
+    serving_function.spec.graph["sentiment-analysis"].class_args["model_path"] = str(
         optimization_run.outputs["model"]
     )
 
