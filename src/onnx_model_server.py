@@ -153,7 +153,7 @@ class ONNXModelServer(V2ModelServer):
         """
         return f"The '{self.model.name}' model serving function named '{self.name}'"
 
-    def preprocess(text: Union[str, Dict]) -> Dict:
+    def preprocess(self, text: Union[str, Dict], operation) -> Dict:
         """
         Converting a simple text into a structured body for the serving function
 
@@ -161,7 +161,7 @@ class ONNXModelServer(V2ModelServer):
         """
         return {"inputs": [str(text)]}
 
-    def postprocess(model_response: Dict) -> List:
+    def postprocess(self, model_response: Dict) -> List:
         """
         Transfering the prediction to the gradio interface.
 
@@ -174,7 +174,7 @@ class ONNXModelServer(V2ModelServer):
             "The prediction score is " + str(output["score"]),
         ]
 
-    def _get_model_dir(model_uri: str):
+    def _get_model_dir(self, model_uri: str):
         model_file, model_artifact, extra_data = mlrun.artifacts.get_model(model_uri)
         model_dir = tempfile.gettempdir()
         # Unzip the Model:
