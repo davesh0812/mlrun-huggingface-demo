@@ -1,4 +1,4 @@
-# NYC Taxi Tutorial
+# HuggingFace Tutorial
 
 This project demonstrates how to build an ML application and use MLOps to operationalize it.
 
