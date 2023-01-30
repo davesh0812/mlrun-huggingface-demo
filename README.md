@@ -10,10 +10,9 @@ This project demonstrates how to build an ML application and use MLOps to operat
 
 The project contains four notebooks, in the following order:
 
-- [**Exploratory Data Analysis**](./00-exploratory-data-analysis.ipynb)
 - [**Data preparation, training and evaluating a model**](./01-dataprep-train-test.ipynb)
 - [**Application Serving Pipeline**](./02-serving-pipeline.ipynb)
-- [**Pipeline Automation and Model Monitoring**](./03-automation.ipynb)
+- [**Pipeline Automation**](./03-automation.ipynb)
 
 You can find the python source code under [/src](./src)
 
