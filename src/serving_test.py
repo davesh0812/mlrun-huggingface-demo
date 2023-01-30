@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 import mlrun
@@ -48,7 +47,7 @@ def model_server_tester(
         event_data = dataset.iloc[i].to_dict()["text"]
         try:
             start = datetime.now()
-            resp = requests.post(f"{endpoint}/predict", data=event_data.encode('utf-8'))
+            resp = requests.post(f"{endpoint}/predict", data=event_data.encode("utf-8"))
             if not resp.ok:
                 context.logger.error(f"bad function resp!!\n{resp.text}")
                 err_count += 1
