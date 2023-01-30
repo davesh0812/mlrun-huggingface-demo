@@ -57,7 +57,7 @@ def kfpipeline(
         name="server_tester",
         inputs={"dataset": prepare_dataset_run.outputs["test_dataset"]},
         params={
-            "label_column": "label",
+            "label_column": "labels",
             "endpoint": deploy_return.outputs["endpoint"],
         },
         auto_build=True,
