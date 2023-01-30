@@ -122,7 +122,6 @@ class ONNXModelServer(V2ModelServer):
         self._output_layers = [
             output_layer.name for output_layer in self._inference_session.get_outputs()
         ]
-        print(self._output_layers)
 
     def predict(self, request: Dict[str, Any]) -> np.ndarray:
         """
@@ -133,6 +132,10 @@ class ONNXModelServer(V2ModelServer):
 
         :return: The ONNXRunTime session returned output on the given inputs.
         """
+        print(self._input_layers)
+        print(self._output_layers)
+
+
         # Read the inputs from the request:
         inputs = request["inputs"]
 
