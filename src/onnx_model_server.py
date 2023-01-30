@@ -27,44 +27,6 @@ from transformers import AutoTokenizer
 LABELS = {0: "NEGATIVE", 1: "POSITIVE"}
 
 
-def _get_model_dir(model_uri: str):
-    model_file, model_artifact, extra_data = mlrun.artifacts.get_model(model_uri)
-    model_dir = tempfile.gettempdir()
-    # Unzip the Model:
-    with zipfile.ZipFile(model_file, "r") as zip_file:
-        zip_file.extractall(model_dir)
-
-    # Unzip the Tokenizer:
-    tokenizer_file = extra_data["tokenizer"].local()
-    with zipfile.ZipFile(tokenizer_file, "r") as zip_file:
-        zip_file.extractall(model_dir)
-
-    return model_dir, model_artifact.extra_data["tokenizer"]
-
-
-def preprocess(text: Union[str, Dict]) -> Dict:
-    """
-    Converting a simple text into a structured body for the serving function
-
-    :param text: The text to predict
-    """
-    return {"inputs": [str(text)]}
-
-
-def postprocess(model_response: Dict) -> List:
-    """
-    Transfering the prediction to the gradio interface.
-
-    :param model_response: A dict with the model output
-    """
-    output = model_response["outputs"][0]
-    prediction = LABELS[int(output["label"])]
-    return [
-        "The sentiment is " + prediction,
-        "The prediction score is " + str(output["score"]),
-    ]
-
-
 class ONNXModelServer(V2ModelServer):
     """
     ONNX Model serving class, inheriting the V2ModelServer class for being initialized automatically by the model server
@@ -142,7 +104,7 @@ class ONNXModelServer(V2ModelServer):
         """
         Use the model handler to get the model file path and initialize an ONNX run time inference session.
         """
-        model_dir = _get_model_dir(self.model_path)[0]
+        model_dir = self._get_model_dir(self.model_path)[0]
         self._tokenizer = AutoTokenizer.from_pretrained(model_dir)
         # initialize the onnx run time session:
         self._inference_session = onnxruntime.InferenceSession(
@@ -191,21 +153,37 @@ class ONNXModelServer(V2ModelServer):
         """
         return f"The '{self.model.name}' model serving function named '{self.name}'"
 
-    def preprocess(self, request: Dict, operation) -> Dict:
-        """preprocess the event body before validate and action"""
+    def preprocess(text: Union[str, Dict]) -> Dict:
+        """
+        Converting a simple text into a structured body for the serving function
 
-        tokenized_samples: Dict = self._tokenizer(request["inputs"], truncation=True)
-        request["inputs"] = [
-            val if isinstance(val[0], list) else [val]
-            for val in tokenized_samples.values()
+        :param text: The text to predict
+        """
+        return {"inputs": [str(text)]}
+
+    def postprocess(model_response: Dict) -> List:
+        """
+        Transfering the prediction to the gradio interface.
+
+        :param model_response: A dict with the model output
+        """
+        output = model_response["outputs"][0]
+        prediction = LABELS[int(output["label"])]
+        return [
+            "The sentiment is " + prediction,
+            "The prediction score is " + str(output["score"]),
         ]
-        return request
 
-    def postprocess(self, request: Dict) -> Dict:
-        print(f"request {request}")
-        outputs = request["outputs"][0].tolist()
-        chosen_label = np.argmax(outputs, axis=-1)[0].item()
-        print(chosen_label)
-        p = outputs[0][chosen_label]
-        request["outputs"] = [{"label": chosen_label, "score": p}]
-        return request
+    def _get_model_dir(model_uri: str):
+        model_file, model_artifact, extra_data = mlrun.artifacts.get_model(model_uri)
+        model_dir = tempfile.gettempdir()
+        # Unzip the Model:
+        with zipfile.ZipFile(model_file, "r") as zip_file:
+            zip_file.extractall(model_dir)
+
+        # Unzip the Tokenizer:
+        tokenizer_file = extra_data["tokenizer"].local()
+        with zipfile.ZipFile(tokenizer_file, "r") as zip_file:
+            zip_file.extractall(model_dir)
+
+        return model_dir, model_artifact.extra_data["tokenizer"]
