@@ -19,9 +19,9 @@ from typing import Any, Dict, List, Tuple, Union
 
 import mlrun
 import numpy as np
-import onnx
 import onnxruntime
 from mlrun.serving.v2_serving import V2ModelServer
+from onnx import ModelProto
 from transformers import AutoTokenizer
 
 LABELS = {0: "NEGATIVE", 1: "POSITIVE"}
@@ -75,7 +75,7 @@ class ONNXModelServer(V2ModelServer):
         self,
         context: mlrun.MLClientCtx,
         name: str,
-        model: onnx.ModelProto = None,
+        model: ModelProto = None,
         model_path: str = None,
         model_name: str = None,
         execution_providers: List[Union[str, Tuple[str, Dict[str, Any]]]] = None,
