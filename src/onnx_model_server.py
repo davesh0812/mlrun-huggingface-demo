@@ -23,7 +23,30 @@ import onnxruntime
 from mlrun.serving.v2_serving import V2ModelServer
 from transformers import AutoTokenizer
 
-LABELS = {0: "NEGATIVE", 1: "POSITIVE"}
+LABELS_OPTIMIZE = {0: "NEGATIVE", 1: "POSITIVE"}
+
+LABELS = {"LABEL_0": "NEGATIVE", "LABEL_1": "POSITIVE"}
+
+
+def preprocess(text: Union[str, bytes]) -> Dict:
+    """Converting a simple text into a structured body for the serving function
+
+    :param text: The text to predict
+    """
+    return {"inputs": [str(text)]}
+
+
+def postprocess(model_response: Dict) -> List:
+    """Transfering the prediction to the gradio interface.
+
+    :param model_response: A dict with the model output
+    """
+    output = model_response["outputs"][0]
+    prediction = LABELS[output["label"]]
+    return [
+        "The sentiment is " + prediction,
+        "The prediction score is " + str(output["score"]),
+    ]
 
 
 def _get_model_dir(model_uri: str):
@@ -41,7 +64,7 @@ def _get_model_dir(model_uri: str):
     return model_dir, model_artifact.extra_data["tokenizer"]
 
 
-def preprocess(text: Union[str, Dict]) -> Dict:
+def preprocess_optimize(text: Union[str, Dict]) -> Dict:
     """
     Converting a simple text into a structured body for the serving function
 
@@ -50,14 +73,14 @@ def preprocess(text: Union[str, Dict]) -> Dict:
     return {"inputs": [str(text)]}
 
 
-def postprocess(model_response: Dict) -> List:
+def postprocess_optimize(model_response: Dict) -> List:
     """
     Transfering the prediction to the gradio interface.
 
     :param model_response: A dict with the model output
     """
     output = model_response["outputs"][0]
-    prediction = LABELS[int(output["label"])]
+    prediction = LABELS_OPTIMIZE[int(output["label"])]
     return [
         "The sentiment is " + prediction,
         "The prediction score is " + str(output["score"]),
