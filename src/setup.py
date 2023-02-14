@@ -39,3 +39,5 @@ def create_and_set_project(
         with_repo=True,
     )
     project.save()
+
+    return project
