@@ -42,7 +42,9 @@ def postprocess(model_response: Dict) -> List:
     :param model_response: A dict with the model output
     """
     output = model_response["outputs"][0]
-    prediction = LABELS.get(output["label"], None) or LABELS_OPTIMIZE.get(output["label"], None)
+    prediction = LABELS.get(output["label"], None) or LABELS_OPTIMIZE.get(
+        output["label"], None
+    )
     return [
         "The sentiment is " + prediction,
         "The prediction score is " + str(output["score"]),
@@ -62,6 +64,7 @@ def _get_model_dir(model_uri: str):
         zip_file.extractall(model_dir)
 
     return model_dir, model_artifact.extra_data["tokenizer"]
+
 
 class ONNXModelServer(V2ModelServer):
     """

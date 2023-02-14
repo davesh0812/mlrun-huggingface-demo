@@ -6,9 +6,10 @@ def sentiment(text):
     global serving_url, serving_function
     if serving_url is not None:
         resp = requests.post(serving_url, json={"text": text})
+        return resp.json()
     else:
         resp = serving_function.invoke(path="/predict", body={"text": text})
-    return resp.json()
+        return resp
 
 
 def build_and_launch(url=None, serving_func=None):
