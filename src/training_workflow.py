@@ -44,9 +44,14 @@ def kfpipeline(
 
     # Get the function:
     serving_function = project.get_function("serving")
-    serving_function.spec.graph["sentiment-analysis"].class_args["model_path"] = str(
-        optimization_run.outputs["model"]
-    )
+    graph = serving_function.spec.graph
+
+    # Build the serving graph:
+    graph.to(handler="preprocess_optimize", name="preprocess").to(
+        class_name="ONNXModelServer",
+        name="sentiment-analysis",
+        model_path=optimization_run.outputs["model"],
+    ).to(handler="postprocess_optimize", name="postprocess").respond()
 
     # Deploy the serving function:
     deploy_return = mlrun.deploy_function("serving")
