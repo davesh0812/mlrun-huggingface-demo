@@ -54,7 +54,7 @@ def kfpipeline(
     ).to(handler="postprocess_optimize", name="postprocess").respond()
 
     # Deploy the serving function:
-    deploy_return = mlrun.deploy_function("serving")
+    deploy_return = mlrun.deploy_function(serving_function)
 
     # Model server tester
     mlrun.run_function(
