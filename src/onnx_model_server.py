@@ -42,7 +42,7 @@ def postprocess(model_response: Dict) -> List:
     :param model_response: A dict with the model output
     """
     output = model_response["outputs"][0]
-    prediction = LABELS[output["label"]]
+    prediction = LABELS.get(output["label"], None) or LABELS_OPTIMIZE.get(output["label"], None)
     return [
         "The sentiment is " + prediction,
         "The prediction score is " + str(output["score"]),
@@ -62,30 +62,6 @@ def _get_model_dir(model_uri: str):
         zip_file.extractall(model_dir)
 
     return model_dir, model_artifact.extra_data["tokenizer"]
-
-
-def preprocess_optimize(text: Union[str, Dict]) -> Dict:
-    """
-    Converting a simple text into a structured body for the serving function
-
-    :param text: The text to predict
-    """
-    return {"inputs": [str(text)]}
-
-
-def postprocess_optimize(model_response: Dict) -> List:
-    """
-    Transfering the prediction to the gradio interface.
-
-    :param model_response: A dict with the model output
-    """
-    output = model_response["outputs"][0]
-    prediction = LABELS_OPTIMIZE[int(output["label"])]
-    return [
-        "The sentiment is " + prediction,
-        "The prediction score is " + str(output["score"]),
-    ]
-
 
 class ONNXModelServer(V2ModelServer):
     """
