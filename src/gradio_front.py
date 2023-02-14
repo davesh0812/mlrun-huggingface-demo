@@ -3,14 +3,18 @@ import requests
 
 
 def sentiment(text):
-    global serving_url
-    resp = requests.post(serving_url, json={"text": text})
+    global serving_url, serving_function
+    if serving_url is not None:
+        resp = requests.post(serving_url, json={"text": text})
+    else:
+        resp = serving_function.invoke(path="/predict", json={"text": text})
     return resp.json()
 
 
-def build_and_launch(url):
-    global serving_url
+def build_and_launch(url=None, serving_func=None):
+    global serving_url, serving_function
     serving_url = url
+    serving_function = serving_func
 
     with gr.Blocks() as demo:
         input_box = [
