@@ -7,7 +7,7 @@ def sentiment(text):
     if serving_url is not None:
         resp = requests.post(serving_url, json={"text": text})
     else:
-        resp = serving_function.invoke(path="/predict", json={"text": text})
+        resp = serving_function.invoke(path="/predict", body={"text": text})
     return resp.json()
 
 
