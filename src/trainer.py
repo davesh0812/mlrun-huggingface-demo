@@ -54,6 +54,7 @@ def train(
     pretrained_model: str = "distilbert-base-uncased",
     num_labels: Optional[int] = 2,
     target_dir: str = "finetuning-sentiment-model-3000-samples",
+    num_epochs: int = 1,
 ):
     """
     Training and evaluating a pretrained model with a pretrained tokenizer over a dataset.
@@ -94,7 +95,7 @@ def train(
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=1,
+        num_train_epochs=num_epochs,
         weight_decay=0.01,
         push_to_hub=False,
         evaluation_strategy="epoch",

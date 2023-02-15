@@ -7,6 +7,7 @@ def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
+    num_epochs: int,
 ):
     # Get our project object:
     project = mlrun.get_current_project()
@@ -30,6 +31,7 @@ def kfpipeline(
         params={
             "pretrained_tokenizer": pretrained_tokenizer,
             "pretrained_model": pretrained_model,
+            "num_epochs": num_epochs,
         },
         outputs=["model"],
     )
