@@ -204,6 +204,7 @@ class ONNXModelServer(V2ModelServer):
 
     def postprocess(self, request: Dict) -> Dict:
         outputs = request["outputs"][0].tolist()
+        print(outputs)
         chosen_label = np.argmax(outputs, axis=-1)[0].item()
         p = outputs[0][chosen_label]
         request["outputs"] = [{"label": chosen_label, "score": p}]
