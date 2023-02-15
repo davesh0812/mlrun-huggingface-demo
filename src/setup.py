@@ -6,7 +6,7 @@ def create_and_set_project(
     git_source: str = "git://github.com/davesh0812/mlrun-huggingface-demo.git#main",
 ):
     # get/create a project and register the data prep and trainer function in it
-    project = mlrun.get_or_create_project(name=name, context="./")
+    project = mlrun.get_or_create_project(name=name, context="./", user_project=True)
 
     project.set_source(git_source, pull_at_runtime=True)
 
