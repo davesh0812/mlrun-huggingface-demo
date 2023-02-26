@@ -47,12 +47,13 @@ def create_and_set_project(
     )
 
     if set_serving:
-        serving_function = mlrun.new_function("serving", kind="serving", image="mlrun/ml-models", requirements=requirements)
+        serving_function = mlrun.new_function("serving-pretrained", kind="serving", image="mlrun/ml-models",
+                                              requirements=requirements)
         project.set_function(serving_function)
 
         serving_function_staging = mlrun.code_to_function(
             filename="src/serving.py",
-            name="serving",
+            name="serving-trained",
             tag="staging",
             kind="serving",
             image=default_image,
