@@ -5,12 +5,14 @@ def create_and_set_project(
     name: str = "huggingface",
     git_source: str = "git://github.com/davesh0812/mlrun-huggingface-demo.git#main",
     default_image: str = "mlrun/ml-models",
-    requirements: str = ['transformers', 'datasets'],
+    requirements: str = ["transformers", "datasets", "onnxruntime"],
     user_project=False,
-    set_serving=True
+    set_serving=True,
 ):
     # get/create a project and register the data prep and trainer function in it
-    project = mlrun.get_or_create_project(name=name, context="./", user_project=user_project)
+    project = mlrun.get_or_create_project(
+        name=name, context="./", user_project=user_project
+    )
 
     project.set_source(git_source, pull_at_runtime=True)
 
@@ -27,7 +29,7 @@ def create_and_set_project(
         handler="src.trainer.train",
         kind="job",
         with_repo=True,
-        requirements=requirements
+        requirements=requirements,
     )
     project.set_function(
         name="optimizer",
@@ -35,7 +37,7 @@ def create_and_set_project(
         handler="src.trainer.optimize",
         kind="job",
         with_repo=True,
-        requirements=requirements
+        requirements=requirements,
     )
     project.set_function(
         name="server-tester",
@@ -43,12 +45,16 @@ def create_and_set_project(
         handler="src.serving_test.model_server_tester",
         kind="job",
         with_repo=True,
-        requirements=requirements
+        requirements=requirements,
     )
 
     if set_serving:
-        serving_function = mlrun.new_function("serving-pretrained", kind="serving", image="mlrun/ml-models",
-                                              requirements=requirements)
+        serving_function = mlrun.new_function(
+            "serving-pretrained",
+            kind="serving",
+            image="mlrun/ml-models",
+            requirements=requirements,
+        )
         project.set_function(serving_function)
 
         serving_function_staging = mlrun.code_to_function(
@@ -57,10 +63,10 @@ def create_and_set_project(
             tag="staging",
             kind="serving",
             image=default_image,
-            requirements=requirements
+            requirements=requirements,
         )
         project.set_function(serving_function_staging)
-    
+
     project.set_workflow("training_workflow", "src/training_workflow.py")
     project.save()
 
