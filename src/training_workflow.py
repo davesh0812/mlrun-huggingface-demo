@@ -15,7 +15,6 @@ def kfpipeline(
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="data-prep",
-        name="prepare_data",
         params={"dataset_name": dataset_name},
         outputs=["train_dataset", "test_dataset"],
     )
@@ -23,7 +22,6 @@ def kfpipeline(
     # Training:
     training_run = mlrun.run_function(
         function="trainer",
-        name="training",
         inputs={
             "train_dataset": prepare_dataset_run.outputs["train_dataset"],
             "test_dataset": prepare_dataset_run.outputs["test_dataset"],
@@ -39,29 +37,30 @@ def kfpipeline(
     # Optimization:
     optimization_run = mlrun.run_function(
         function="optimizer",
-        name="optimization",
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
     )
 
     # Get the function:
     serving_function = project.get_function("serving")
+    serving_function.metadata.tag = "staging"
     serving_function.spec.graph["sentiment-analysis"].class_name = "ONNXModelServer"
     serving_function.spec.graph["sentiment-analysis"].class_args = {
         "model_path": str(optimization_run.outputs["model"])
     }
+
+    # Enable model monitoring
+    serving_function.set_tracking()
 
     # Deploy the serving function:
     deploy_return = mlrun.deploy_function("serving")
 
     # Model server tester
     mlrun.run_function(
-        function="server_tester",
-        name="server_tester",
+        function="server-tester",
         inputs={"dataset": prepare_dataset_run.outputs["test_dataset"]},
         params={
             "label_column": "labels",
             "endpoint": deploy_return.outputs["endpoint"],
         },
-        auto_build=True,
-    ).after(deploy_return)
+    )
