@@ -7,6 +7,7 @@ def create_and_set_project(
     default_image: str = "mlrun/ml-models",
     requirements: str = ['transformers', 'datasets'],
     user_project=False,
+    set_serving=True
 ):
     # get/create a project and register the data prep and trainer function in it
     project = mlrun.get_or_create_project(name=name, context="./", user_project=user_project)
@@ -45,18 +46,19 @@ def create_and_set_project(
         requirements=requirements
     )
 
-    serving_function = mlrun.new_function("serving", kind="serving", image="mlrun/ml-models", requirements=requirements)
-    project.set_function(serving_function)
+    if set_serving:
+        serving_function = mlrun.new_function("serving", kind="serving", image="mlrun/ml-models", requirements=requirements)
+        project.set_function(serving_function)
 
-    serving_function_staging = mlrun.code_to_function(
-        filename="src/serving.py",
-        name="serving",
-        tag="staging",
-        kind="serving",
-        image=default_image,
-        requirements=requirements
-    )
-    project.set_function(serving_function_staging)
+        serving_function_staging = mlrun.code_to_function(
+            filename="src/serving.py",
+            name="serving",
+            tag="staging",
+            kind="serving",
+            image=default_image,
+            requirements=requirements
+        )
+        project.set_function(serving_function_staging)
     
     project.set_workflow("training_workflow", "src/training_workflow.py")
     project.save()
