@@ -16,35 +16,34 @@ def create_and_set_project(
 
     project.set_source(git_source, pull_at_runtime=True)
 
-    # project.set_function(
-    #     name="data-prep",
-    #     image=default_image,
-    #     handler="src.data_prep.prepare_dataset",
-    #     kind="job",
-    #     with_repo=True,
-    # )
     project.set_function(
+        "src/data_prep.py",
+        name="data-prep",
+        image=default_image,
+        handler="prepare_dataset",
+        kind="job",
+    )
+    project.set_function(
+        "./function.yaml",
         name="trainer",
         image=default_image,
-        handler="src.trainer.train",
         kind="job",
-        with_repo=True,
         requirements=requirements,
     )
     project.set_function(
+        "./function.yaml",
         name="optimizer",
         image=default_image,
-        handler="src.trainer.optimize",
+        handler="optimize",
         kind="job",
-        with_repo=True,
         requirements=requirements,
     )
     project.set_function(
+        "src/serving_test.py",
         name="server-tester",
-        image="davesh0812/mlrun:mlrun-huggingface-demo-1",
-        handler="src.serving_test.model_server_tester",
+        image=default_image,
+        handler="model_server_tester",
         kind="job",
-        with_repo=True,
         requirements=requirements,
     )
 
