@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 import os
 import tempfile
 import zipfile
@@ -83,7 +84,7 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
         else:
             self._tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
 
-    def predict(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def predict(self, request: Dict[str, Any]) -> str:
         print(request)
         tokenized_samples: Dict = self._tokenizer(request["inputs"], truncation=True)
         request["inputs"] = [
@@ -91,7 +92,7 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
             for val in tokenized_samples.values()
         ]
         print(request)
-        return request
+        return json.dumps(request)
 #
 # class ONNXModelServer(V2ModelServer):
 #     """
