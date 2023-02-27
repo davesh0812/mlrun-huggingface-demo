@@ -24,14 +24,14 @@ def create_and_set_project(
         kind="job",
     )
     project.set_function(
-        "./function.yaml",
+        "src/function.yaml",
         name="trainer",
         image=default_image,
         kind="job",
         requirements=requirements,
     )
     project.set_function(
-        "./function.yaml",
+        "src/function.yaml",
         name="optimizer",
         image=default_image,
         handler="optimize",
