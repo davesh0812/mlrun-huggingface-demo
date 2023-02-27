@@ -78,11 +78,11 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
         # Loading the pretrained tokenizer:
         if self.tokenizer_class:
             tokenizer_object = getattr(transformers, self.tokenizer_class)
-            self.tokenizer = tokenizer_object.from_pretrained(self.tokenizer_name)
+            self._tokenizer = tokenizer_object.from_pretrained(self.tokenizer_name)
         else:
             self._tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
 
-    def predict(self, request: Dict[str, Any]) -> List:
+    def predict(self, request: Dict[str, Any]) -> Dict[str, Any]:
         tokenized_samples: Dict = self._tokenizer(request["inputs"], truncation=True)
         request["inputs"] = [
             val if isinstance(val[0], list) else [val]
