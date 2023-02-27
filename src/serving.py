@@ -35,6 +35,7 @@ def preprocess(text: Union[str, bytes]) -> Dict:
 
     :param text: The text to predict
     """
+    print(text)
     return {"inputs": [str(text)]}
 
 
