@@ -90,6 +90,7 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
             val if isinstance(val[0], list) else [val]
             for val in tokenized_samples.values()
         ]
+        print(request)
         return request
 #
 # class ONNXModelServer(V2ModelServer):
