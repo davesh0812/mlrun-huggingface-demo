@@ -96,6 +96,7 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
 
     def postprocess(self, request: Dict) -> Dict:
         print(f"postprocess : {request}")
+        request["inputs"] = request["outputs"]["inputs"]
         return request
 #
 # class ONNXModelServer(V2ModelServer):
