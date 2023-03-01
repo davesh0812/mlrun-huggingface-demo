@@ -92,7 +92,10 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
             for val in tokenized_samples.values()
         ]
         print(request)
-        return json.dumps(request)
+        return request
+
+    def postprocess(self, request: Dict) -> Dict:
+        return request
 #
 # class ONNXModelServer(V2ModelServer):
 #     """
