@@ -7,7 +7,7 @@ def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
-    num_epochs: int,
+    additional_trainer_parameters: dict,
 ):
     # Get our project object:
     project = mlrun.get_current_project()
@@ -23,14 +23,20 @@ def kfpipeline(
     training_run = mlrun.run_function(
         function="trainer",
         inputs={
-            "train_dataset": prepare_dataset_run.outputs["train_dataset"],
-            "test_dataset": prepare_dataset_run.outputs["test_dataset"],
+            "dataset": prepare_dataset_run.outputs["train_dataset"],
         },
         params={
             "pretrained_tokenizer": pretrained_tokenizer,
             "pretrained_model": pretrained_model,
-            "num_epochs": num_epochs,
+            "model_class": "transformers.AutoModelForSequenceClassification",
+            "label_name": "airline_sentiment",
+            "num_of_train_samples": 100,
+            "metrics": ["accuracy", "f1"],
+            "random_state": 42,
+            **additional_trainer_parameters,
         },
+        local=True,
+        handler="train",
         outputs=["model"],
     )
 
@@ -39,21 +45,35 @@ def kfpipeline(
         function="optimizer",
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
+        handler="optimize",
     )
 
-    # Get the function:
-    serving_function = project.get_function("serving")
-    serving_function.metadata.tag = "staging"
-    serving_function.spec.graph["sentiment-analysis"].class_name = "ONNXModelServer"
-    serving_function.spec.graph["sentiment-analysis"].class_args = {
-        "model_path": str(optimization_run.outputs["model"])
-    }
+    # Create serving graph:
+    serving_function = project.get_function("serving-trained")
+
+    # Set the topology and get the graph object:
+    graph = serving_function.set_topology("flow", engine="async")
+    graph.to(handler="src.serving.preprocess", name="preprocess").to(
+        "HuggingFaceTokenizerModelServer",
+        name="tokenizer",
+        task="tokenizer",
+        tokenizer_name="distilbert-base-uncased",
+        tokenizer_class="AutoTokenizer",
+    ).to(
+        class_name="mlrun.frameworks.onnx.ONNXModelServer",
+        name="sentiment-analysis",
+        model_path=str(optimization_run.outputs["model"]),
+    ).to(
+        handler="src.serving.postprocess", name="postprocess"
+    ).respond()
+
+    project.set_function(serving_function, with_repo=True)
 
     # Enable model monitoring
     serving_function.set_tracking()
 
     # Deploy the serving function:
-    deploy_return = mlrun.deploy_function("serving")
+    deploy_return = mlrun.deploy_function("serving-trained")
 
     # Model server tester
     mlrun.run_function(

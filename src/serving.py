@@ -22,8 +22,8 @@ import mlrun
 import numpy as np
 import onnxruntime
 import transformers
-from mlrun.serving.v2_serving import V2ModelServer
 from mlrun.frameworks.huggingface import HuggingFaceModelServer
+from mlrun.serving.v2_serving import V2ModelServer
 from transformers import AutoTokenizer
 
 LABELS_OPTIMIZE = {0: "NEGATIVE", 1: "POSITIVE"}
@@ -98,6 +98,8 @@ class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
         print(f"postprocess : {request}")
         request["inputs"] = request["outputs"]["inputs"]
         return request
+
+
 #
 # class ONNXModelServer(V2ModelServer):
 #     """

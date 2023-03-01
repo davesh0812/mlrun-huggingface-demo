@@ -64,7 +64,7 @@ def create_and_set_project(
             image=default_image,
             requirements=requirements,
         )
-        project.set_function(serving_function_staging)
+        project.set_function(serving_function_staging, with_repo=True)
 
     project.set_workflow("training_workflow", "src/training_workflow.py")
     project.save()
