@@ -46,6 +46,7 @@ def postprocess(model_response: Dict) -> List:
     :param model_response: A dict with the model output
     """
 
+    print(model_response)
     outputs = model_response["outputs"][0].tolist()
     print(outputs)
     chosen_label = np.argmax(outputs, axis=-1)[0].item()
