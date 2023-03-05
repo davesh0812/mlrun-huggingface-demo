@@ -17,7 +17,7 @@ def _edit_columns(
     return dataset
 
 
-@mlrun.handler(outputs=["train_dataset:dataset", "test_dataset:dataset", "additional_params"])
+@mlrun.handler(outputs=["train_dataset:dataset", "test_dataset:dataset", "additional_params:result"])
 def prepare_dataset(
     dataset_name: str = "Shayanvsf/US_Airline_Sentiment",
     drop_columns: Optional[List[str]] = [
