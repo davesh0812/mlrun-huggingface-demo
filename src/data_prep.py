@@ -1,3 +1,4 @@
+import json
 from typing import Dict, List, Optional
 
 import mlrun
@@ -16,7 +17,7 @@ def _edit_columns(
     return dataset
 
 
-@mlrun.handler(outputs=["train_dataset:dataset", "test_dataset:dataset"])
+@mlrun.handler(outputs=["train_dataset:dataset", "test_dataset:dataset", "additional_params:result"])
 def prepare_dataset(
     dataset_name: str = "Shayanvsf/US_Airline_Sentiment",
     drop_columns: Optional[List[str]] = [
@@ -24,12 +25,14 @@ def prepare_dataset(
         "negativereason_confidence",
     ],
     rename_columns: Optional[Dict[str, str]] = {"airline_sentiment": "labels"},
+    additional_params: str = "{}",
 ):
     """
     Loading the dataset and editing the columns and logs the
     :param dataset_name:    The name of the dataset to get from the HuggingFace hub
     :param drop_columns:    The columns to drop from the dataset.
     :param rename_columns:  The columns to rename in the dataset.
+    :param additional_params:
 
     """
 
@@ -41,5 +44,10 @@ def prepare_dataset(
     )
     small_test_dataset = dataset["test"].shuffle(seed=42).select(list(range(300)))
     small_test_dataset = _edit_columns(small_test_dataset, drop_columns, rename_columns)
+    additional_params = json.loads(additional_params)
 
-    return small_train_dataset.to_pandas(), small_test_dataset.to_pandas()
+    return (
+        small_train_dataset.to_pandas(),
+        small_test_dataset.to_pandas(),
+        additional_params,
+    )
