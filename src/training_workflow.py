@@ -1,13 +1,18 @@
+import json
+
 import mlrun
 from kfp import dsl
-import json
+
 
 @dsl.pipeline(name="Sentiment Analysis Pipeline")
 def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
-    additional_params: str,
+    TRAIN_output_dir: str,
+    TRAIN_evaluation_strategy: str,
+    CLASS_num_labels: str,
+    TRAIN_num_train_epochs: str,
 ):
     # Get our project object:
     project = mlrun.get_current_project()
@@ -15,7 +20,7 @@ def kfpipeline(
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="data-prep",
-        params={"dataset_name": dataset_name, "additional_params": additional_params},
+        params={"dataset_name": dataset_name},
         outputs=["train_dataset", "test_dataset", "additional_params"],
     )
 
@@ -32,10 +37,12 @@ def kfpipeline(
             "pretrained_model": pretrained_model,
             "model_class": "transformers.AutoModelForSequenceClassification",
             "label_name": "airline_sentiment",
-            "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
-            **prepare_dataset_run.outputs["additional_params"],
+            "TRAIN_output_dir": TRAIN_output_dir,
+            "TRAIN_evaluation_strategy": TRAIN_evaluation_strategy,
+            "CLASS_num_labels": CLASS_num_labels,
+            "TRAIN_num_train_epochs": TRAIN_num_train_epochs,
         },
         handler="train",
         outputs=["model"],
