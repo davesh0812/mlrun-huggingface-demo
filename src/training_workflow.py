@@ -61,7 +61,7 @@ def kfpipeline(
     # Set the topology and get the graph object:
     graph = serving_function.set_topology("flow", engine="async")
     graph.to(handler="src.serving.preprocess", name="preprocess").to(
-        "HuggingFaceTokenizerModelServer",
+        "src.serving.HuggingFaceTokenizerModelServer",
         name="tokenizer",
         task="tokenizer",
         tokenizer_name="distilbert-base-uncased",
@@ -77,7 +77,7 @@ def kfpipeline(
     project.set_function(serving_function, with_repo=True)
 
     # Enable model monitoring
-    # serving_function.set_tracking()
+    serving_function.set_tracking()
 
     # Deploy the serving function:
     deploy_return = mlrun.deploy_function("serving-trained-onnx")
