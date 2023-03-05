@@ -46,7 +46,7 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
-            **additional_trainer_parameters,
+            **additional_trainer_parameters.output,
         },
         handler="train",
         outputs=["model"],
