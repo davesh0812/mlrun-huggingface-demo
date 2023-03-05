@@ -1,5 +1,3 @@
-import json
-
 import mlrun
 from kfp import dsl
 
