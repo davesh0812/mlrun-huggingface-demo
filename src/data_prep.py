@@ -44,7 +44,9 @@ def prepare_dataset(
     )
     small_test_dataset = dataset["test"].shuffle(seed=42).select(list(range(300)))
     small_test_dataset = _edit_columns(small_test_dataset, drop_columns, rename_columns)
+    print(additional_params)
     additional_params = json.loads(additional_params)
+    print(additional_params)
     print(type(additional_params))
 
     return (
