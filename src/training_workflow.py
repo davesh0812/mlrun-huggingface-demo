@@ -1,6 +1,15 @@
+import json
+
+import kfp
 import mlrun
 from kfp import dsl
-import json
+
+
+def my_func(additional_trainer_parameters):
+    return json.load(additional_trainer_parameters)
+
+
+my_op = kfp.components.func_to_container_op(my_func)
 
 
 @dsl.pipeline(name="Sentiment Analysis Pipeline")
@@ -10,6 +19,7 @@ def kfpipeline(
     pretrained_model: str,
     additional_trainer_parameters: json,
 ):
+    additional_trainer_parameters = my_op(additional_trainer_parameters)
     # Get our project object:
     project = mlrun.get_current_project()
 
@@ -23,7 +33,7 @@ def kfpipeline(
     # Training:
     training_run = mlrun.run_function(
         function="hugging_face_classifier_trainer",
-        name='trainer',
+        name="trainer",
         inputs={
             "dataset": prepare_dataset_run.outputs["train_dataset"],
             "test_set": prepare_dataset_run.outputs["test_dataset"],
@@ -36,7 +46,7 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
-            **json.load(additional_trainer_parameters),
+            **additional_trainer_parameters,
         },
         handler="train",
         outputs=["model"],
@@ -45,7 +55,7 @@ def kfpipeline(
     # Optimization:
     optimization_run = mlrun.run_function(
         function="hugging_face_classifier_trainer",
-        name='optimize',
+        name="optimize",
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
         handler="optimize",
