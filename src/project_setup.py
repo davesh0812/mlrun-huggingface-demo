@@ -38,7 +38,6 @@ def create_and_set_project(
         serving_function = mlrun.new_function(
             "serving-pretrained",
             kind="serving",
-            image="mlrun/ml-models",
         )
         project.set_function(serving_function, with_repo=True)
 
