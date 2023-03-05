@@ -25,7 +25,7 @@ def prepare_dataset(
         "negativereason_confidence",
     ],
     rename_columns: Optional[Dict[str, str]] = {"airline_sentiment": "labels"},
-    additional_params: str = "",
+    additional_params: str = "{}",
 ):
     """
     Loading the dataset and editing the columns and logs the
