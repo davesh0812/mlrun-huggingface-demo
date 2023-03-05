@@ -5,8 +5,8 @@ import mlrun
 from kfp import dsl
 
 
-def my_func(additional_trainer_parameters):
-    return json.load(additional_trainer_parameters)
+def my_func(additional_trainer_parameters: str):
+    return json.loads(additional_trainer_parameters)
 
 
 my_op = kfp.components.func_to_container_op(my_func)
@@ -17,7 +17,7 @@ def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
-    additional_trainer_parameters: json,
+    additional_trainer_parameters: str,
 ):
     additional_trainer_parameters = my_op(additional_trainer_parameters)
     # Get our project object:
@@ -28,7 +28,7 @@ def kfpipeline(
         function="data-prep",
         params={"dataset_name": dataset_name},
         outputs=["train_dataset", "test_dataset"],
-    )
+    ).after(additional_trainer_parameters)
 
     # Training:
     training_run = mlrun.run_function(
