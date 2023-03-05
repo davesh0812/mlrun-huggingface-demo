@@ -24,17 +24,9 @@ def create_and_set_project(
         kind="job",
     )
     project.set_function(
-        "src/function.yaml",
-        name="trainer",
+        "hub://hugging_face_classifier_trainer",
+        name="hugging_face_classifier_trainer",
         image=default_image,
-        kind="job",
-        requirements=requirements,
-    )
-    project.set_function(
-        "src/function.yaml",
-        name="optimizer",
-        image=default_image,
-        handler="optimize",
         kind="job",
         requirements=requirements,
     )

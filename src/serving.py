@@ -42,15 +42,17 @@ def postprocess(model_response: Dict) -> List:
     """
 
     outputs = model_response["outputs"][0]
-    if hasattr(outputs, 'tolist'):
+    if hasattr(outputs, "tolist"):
         outputs = outputs.tolist()
         chosen_label = np.argmax(outputs, axis=-1)[0].item()
         score = outputs[0][chosen_label]
     elif isinstance(outputs, dict):
-        chosen_label = outputs['label']
-        score = outputs['score']
+        chosen_label = outputs["label"]
+        score = outputs["score"]
     else:
-        raise mlrun.errors.MLRunRuntimeError(f"Got unknown model_response with {type(model_response)} type.")
+        raise mlrun.errors.MLRunRuntimeError(
+            f"Got unknown model_response with {type(model_response)} type."
+        )
 
     prediction = LABELS.get(chosen_label, None) or LABELS_OPTIMIZE.get(
         chosen_label, None
