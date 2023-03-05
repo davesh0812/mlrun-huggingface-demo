@@ -22,6 +22,7 @@ def create_and_set_project(
         image=default_image,
         handler="prepare_dataset",
         kind="job",
+        requirements=requirements,
     )
     project.set_function(
         "hub://hugging_face_classifier_trainer",
