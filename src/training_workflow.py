@@ -5,13 +5,6 @@ import mlrun
 from kfp import dsl
 
 
-def my_func(additional_trainer_parameters: str):
-    return json.loads(additional_trainer_parameters)
-
-
-my_op = kfp.components.func_to_container_op(my_func)
-
-
 @dsl.pipeline(name="Sentiment Analysis Pipeline")
 def kfpipeline(
     dataset_name: str,
@@ -19,7 +12,6 @@ def kfpipeline(
     pretrained_model: str,
     additional_trainer_parameters: str,
 ):
-    additional_trainer_parameters = my_op(additional_trainer_parameters)
     # Get our project object:
     project = mlrun.get_current_project()
 
