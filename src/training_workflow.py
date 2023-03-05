@@ -7,6 +7,7 @@ def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
+    additional_params: str,
 ):
     # Get our project object:
     project = mlrun.get_current_project()
@@ -14,14 +15,14 @@ def kfpipeline(
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="data-prep",
-        params={"dataset_name": dataset_name},
-        outputs=["train_dataset", "test_dataset"],
+        params={"dataset_name": dataset_name, "additional_params": additional_params},
+        outputs=["train_dataset", "test_dataset", "additional_params"],
     )
 
     # Training:
     training_run = mlrun.run_function(
         function="hugging_face_classifier_trainer",
-        name='trainer',
+        name="trainer",
         inputs={
             "dataset": prepare_dataset_run.outputs["train_dataset"],
             "test_set": prepare_dataset_run.outputs["test_dataset"],
@@ -34,6 +35,7 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
+            **prepare_dataset_run.outputs["additional_params"],
         },
         handler="train",
         outputs=["model"],
@@ -42,7 +44,7 @@ def kfpipeline(
     # Optimization:
     optimization_run = mlrun.run_function(
         function="hugging_face_classifier_trainer",
-        name='optimize',
+        name="optimize",
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
         handler="optimize",

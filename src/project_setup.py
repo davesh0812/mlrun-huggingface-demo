@@ -4,41 +4,34 @@ import mlrun
 def create_and_set_project(
     name: str = "huggingface",
     git_source: str = "git://github.com/davesh0812/mlrun-huggingface-demo.git#main",
-    default_image: str = "mlrun/ml-models",
-    requirements: str = ["transformers", "datasets", "onnxruntime"],
+    default_image: str = "davesh0812/mlrun:huggingface",
     user_project=False,
     set_serving=True,
-    build=False,
 ):
     # get/create a project and register the data prep and trainer function in it
     project = mlrun.get_or_create_project(
         name=name, context="./", user_project=user_project
     )
+    project.set_default_image(default_image)
 
     project.set_source(git_source, pull_at_runtime=True)
 
     project.set_function(
         "src/data_prep.py",
         name="data-prep",
-        image=default_image,
         handler="prepare_dataset",
         kind="job",
-        requirements=requirements,
     )
     project.set_function(
         "hub://hugging_face_classifier_trainer",
         name="hugging_face_classifier_trainer",
-        image=default_image,
         kind="job",
-        requirements=requirements,
     )
     project.set_function(
         "src/serving_test.py",
         name="server-tester",
-        image=default_image,
         handler="model_server_tester",
         kind="job",
-        requirements=requirements,
     )
 
     if set_serving:
@@ -46,7 +39,6 @@ def create_and_set_project(
             "serving-pretrained",
             kind="serving",
             image="mlrun/ml-models",
-            requirements=requirements,
         )
         project.set_function(serving_function)
 
@@ -55,16 +47,10 @@ def create_and_set_project(
             name="serving-trained",
             tag="staging",
             kind="serving",
-            image=default_image,
-            requirements=requirements,
         )
         project.set_function(serving_function_staging, with_repo=True)
 
     project.set_workflow("training_workflow", "src/training_workflow.py")
-    if build:
-        project.build_function("hugging_face_classifier_trainer")
-        project.build_function("data-prep")
-        project.build_function("server-tester")
     project.save()
 
     return project
