@@ -48,5 +48,4 @@ def prepare_dataset(
     return (
         small_train_dataset.to_pandas(),
         small_test_dataset.to_pandas(),
-        json.loads(additional_trainer_parameters),
     )
