@@ -80,7 +80,7 @@ def kfpipeline(
     serving_function.set_tracking()
 
     # Deploy the serving function:
-    deploy_return = mlrun.deploy_function("serving-trained")
+    deploy_return = mlrun.deploy_function("serving-trained-onnx")
 
     # Model server tester
     mlrun.run_function(
