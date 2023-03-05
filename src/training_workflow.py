@@ -1,5 +1,6 @@
 import mlrun
 from kfp import dsl
+import json
 
 
 @dsl.pipeline(name="Sentiment Analysis Pipeline")
@@ -7,7 +8,7 @@ def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
-    additional_trainer_parameters: dict,
+    additional_trainer_parameters: json,
 ):
     # Get our project object:
     project = mlrun.get_current_project()
@@ -35,7 +36,7 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
-            **additional_trainer_parameters,
+            **json.load(additional_trainer_parameters),
         },
         handler="train",
         outputs=["model"],
