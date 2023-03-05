@@ -77,7 +77,7 @@ def kfpipeline(
     project.set_function(serving_function, with_repo=True)
 
     # Enable model monitoring
-    serving_function.set_tracking()
+    # serving_function.set_tracking()
 
     # Deploy the serving function:
     deploy_return = mlrun.deploy_function("serving-trained-onnx")
