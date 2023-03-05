@@ -4,7 +4,7 @@ import mlrun
 def create_and_set_project(
     name: str = "huggingface",
     git_source: str = "git://github.com/davesh0812/mlrun-huggingface-demo.git#main",
-    default_image: str = "davesh0812/mlrun:huggingface-mlrun",
+    default_image: str = "davesh0812/mlrun:huggingface-mlrun-demo",
     user_project=False,
     set_serving=True,
 ):
