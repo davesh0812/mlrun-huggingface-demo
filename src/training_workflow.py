@@ -16,7 +16,6 @@ def kfpipeline(
         function="data-prep",
         params={"dataset_name": dataset_name},
         outputs=["train_dataset", "test_dataset"],
-        auto_build=True
     )
 
     # Training:

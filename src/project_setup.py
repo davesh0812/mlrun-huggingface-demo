@@ -8,6 +8,7 @@ def create_and_set_project(
     requirements: str = ["transformers", "datasets", "onnxruntime"],
     user_project=False,
     set_serving=True,
+    build=False,
 ):
     # get/create a project and register the data prep and trainer function in it
     project = mlrun.get_or_create_project(
@@ -60,6 +61,10 @@ def create_and_set_project(
         project.set_function(serving_function_staging, with_repo=True)
 
     project.set_workflow("training_workflow", "src/training_workflow.py")
+    if build:
+        project.build_function("hugging_face_classifier_trainer")
+        project.build_function("data-prep")
+        project.build_function("server-tester")
     project.save()
 
     return project
