@@ -18,7 +18,8 @@ def kfpipeline(
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="data-prep",
-        params={"dataset_name": dataset_name},
+        params={"dataset_name": dataset_name,
+                "additional_trainer_parameters": additional_trainer_parameters},
         outputs=["train_dataset", "test_dataset"],
     ).after(additional_trainer_parameters)
 
