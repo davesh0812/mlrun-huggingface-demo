@@ -21,6 +21,7 @@ def kfpipeline(
         params={"dataset_name": dataset_name,
                 "additional_trainer_parameters": additional_trainer_parameters},
         outputs=["train_dataset", "test_dataset"],
+        auto_build=True
     )
 
     # Training:
@@ -43,6 +44,7 @@ def kfpipeline(
         },
         handler="train",
         outputs=["model"],
+        auto_build=True
     )
 
     # Optimization:
@@ -52,6 +54,7 @@ def kfpipeline(
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
         handler="optimize",
+        auto_build=True
     )
 
     # Create serving graph:
