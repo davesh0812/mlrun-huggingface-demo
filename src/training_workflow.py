@@ -1,6 +1,3 @@
-import json
-
-import kfp
 import mlrun
 from kfp import dsl
 
@@ -17,17 +14,14 @@ def kfpipeline(
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="data-prep",
-        params={
-            "dataset_name": dataset_name,
-        },
+        params={"dataset_name": dataset_name},
         outputs=["train_dataset", "test_dataset"],
-        auto_build=True,
     )
 
     # Training:
     training_run = mlrun.run_function(
         function="hugging_face_classifier_trainer",
-        name="trainer",
+        name='trainer',
         inputs={
             "dataset": prepare_dataset_run.outputs["train_dataset"],
             "test_set": prepare_dataset_run.outputs["test_dataset"],
@@ -40,21 +34,18 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
-            "additional_parameters": {}
         },
         handler="train",
         outputs=["model"],
-        auto_build=True,
     )
 
     # Optimization:
     optimization_run = mlrun.run_function(
         function="hugging_face_classifier_trainer",
-        name="optimize",
+        name='optimize',
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
         handler="optimize",
-        auto_build=True,
     )
 
     # Create serving graph:
