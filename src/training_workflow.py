@@ -40,7 +40,6 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
-            **prepare_dataset_run.outputs,
         },
         handler="train",
         outputs=["model"],
