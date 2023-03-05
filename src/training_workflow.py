@@ -21,7 +21,7 @@ def kfpipeline(
         params={"dataset_name": dataset_name,
                 "additional_trainer_parameters": additional_trainer_parameters},
         outputs=["train_dataset", "test_dataset"],
-    ).after(additional_trainer_parameters)
+    )
 
     # Training:
     training_run = mlrun.run_function(
