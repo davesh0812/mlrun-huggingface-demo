@@ -10,7 +10,6 @@ def kfpipeline(
     dataset_name: str,
     pretrained_tokenizer: str,
     pretrained_model: str,
-    additional_trainer_parameters: str,
 ):
     # Get our project object:
     project = mlrun.get_current_project()
@@ -18,10 +17,11 @@ def kfpipeline(
     # Dataset Preparation:
     prepare_dataset_run = mlrun.run_function(
         function="data-prep",
-        params={"dataset_name": dataset_name,
-                "additional_trainer_parameters": additional_trainer_parameters},
+        params={
+            "dataset_name": dataset_name,
+        },
         outputs=["train_dataset", "test_dataset"],
-        auto_build=True
+        auto_build=True,
     )
 
     # Training:
@@ -40,10 +40,11 @@ def kfpipeline(
             "num_of_train_samples": 100,
             "metrics": ["accuracy", "f1"],
             "random_state": 42,
+            "additional_parameters": {}
         },
         handler="train",
         outputs=["model"],
-        auto_build=True
+        auto_build=True,
     )
 
     # Optimization:
@@ -53,7 +54,7 @@ def kfpipeline(
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
         handler="optimize",
-        auto_build=True
+        auto_build=True,
     )
 
     # Create serving graph:
