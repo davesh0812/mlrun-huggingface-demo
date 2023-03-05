@@ -58,7 +58,7 @@ def kfpipeline(
     )
 
     # Create serving graph:
-    serving_function = project.get_function("serving-trained")
+    serving_function = project.get_function("serving-trained-onnx")
 
     # Set the topology and get the graph object:
     graph = serving_function.set_topology("flow", engine="async")

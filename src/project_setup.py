@@ -44,8 +44,7 @@ def create_and_set_project(
 
         serving_function_staging = mlrun.code_to_function(
             filename="src/serving.py",
-            name="serving-trained",
-            tag="staging",
+            name="serving-trained-onnx",
             kind="serving",
         )
         project.set_function(serving_function_staging, with_repo=True)

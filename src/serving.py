@@ -1,20 +1,4 @@
-# Copyright 2018 Iguazio
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-import tempfile
-import zipfile
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Union
 
 import mlrun
 import numpy as np
@@ -64,6 +48,14 @@ def postprocess(model_response: Dict) -> List:
 
 
 class HuggingFaceTokenizerModelServer(HuggingFaceModelServer):
+    """
+    Hugging Face tokenizer serving class, inheriting the HuggingFaceModelServer class for being
+    initialized automatically by the model server and be able to run locally as part of a nuclio serverless function,
+    or as part of a real-time pipeline.
+    Notice:
+        In order to use this serving class, please ensure that the transformers package is installed.
+    """
+
     def load(self):
         # Loading the pretrained tokenizer:
         if self.tokenizer_class:
