@@ -21,7 +21,7 @@ def kfpipeline(
 
     # Training:
     training_run = mlrun.run_function(
-        function="trainer",
+        function="hugging_face_classifier_trainer",
         inputs={
             "dataset": prepare_dataset_run.outputs["train_dataset"],
         },
@@ -42,7 +42,7 @@ def kfpipeline(
 
     # Optimization:
     optimization_run = mlrun.run_function(
-        function="optimizer",
+        function="hugging_face_classifier_trainer",
         params={"model_path": training_run.outputs["model"]},
         outputs=["model"],
         handler="optimize",
