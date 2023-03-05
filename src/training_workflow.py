@@ -24,6 +24,7 @@ def kfpipeline(
         function="hugging_face_classifier_trainer",
         inputs={
             "dataset": prepare_dataset_run.outputs["train_dataset"],
+            "test_set": prepare_dataset_run.outputs["test_dataset"],
         },
         params={
             "pretrained_tokenizer": pretrained_tokenizer,
