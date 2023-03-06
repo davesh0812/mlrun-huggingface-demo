@@ -1,0 +1,167 @@
+kind: project
+metadata:
+  name: huggingface-demo-iguazio
+  created: '2023-03-05T15:47:55.390000'
+spec:
+  functions:
+  - url: src/data_prep.py
+    name: data-prep
+    kind: job
+    handler: prepare_dataset
+  - url: hub://hugging_face_classifier_trainer
+    name: hugging_face_classifier_trainer
+    kind: job
+  - url: src/serving_test.py
+    name: server-tester
+    kind: job
+    handler: model_server_tester
+  - name: serving-pretrained
+    spec:
+      kind: serving
+      metadata:
+        name: serving-pretrained
+        project: huggingface-demo-iguazio
+        categories: []
+      spec:
+        command: ''
+        args: []
+        image: ''
+        build:
+          source: ./
+          commands: []
+          code_origin: git://github.com/davesh0812/mlrun-huggingface-demo.git#refs/heads/main#2483d5f12f61e35e140a19015521056d4ff1a237
+        description: ''
+        disable_auto_mount: false
+        env: []
+        resources:
+          requests:
+            memory: 1Mi
+            cpu: 25m
+          limits:
+            memory: 20Gi
+            cpu: '2'
+        priority_class_name: igz-workload-medium
+        preemption_mode: prevent
+        min_replicas: 1
+        max_replicas: 4
+        source: ''
+        function_kind: serving_v2
+        base_image_pull: false
+        graph:
+          steps:
+            preprocess:
+              kind: task
+              handler: src.serving.preprocess
+              after: []
+            sentiment-analysis:
+              kind: task
+              class_name: mlrun.frameworks.huggingface.HuggingFaceModelServer
+              class_args:
+                task: sentiment-analysis
+                model_name: distilbert-base-uncased
+                model_class: AutoModelForSequenceClassification
+                tokenizer_name: distilbert-base-uncased
+                tokenizer_class: AutoTokenizer
+              after:
+              - preprocess
+            postprocess:
+              kind: task
+              handler: src.serving.postprocess
+              after:
+              - sentiment-analysis
+              responder: true
+          engine: async
+        secret_sources: []
+        affinity: null
+        tolerations: null
+        security_context: {}
+      verbose: false
+  - name: serving-trained
+    spec:
+      kind: serving
+      metadata:
+        name: serving-trained
+        tag: staging
+        project: huggingface-iguazio
+      spec:
+        command: ''
+        args: []
+        image: ''
+        build:
+          functionSourceCode: IyBDb3B5cmlnaHQgMjAxOCBJZ3VhemlvCiMKIyBMaWNlbnNlZCB1bmRlciB0aGUgQXBhY2hlIExpY2Vuc2UsIFZlcnNpb24gMi4wICh0aGUgIkxpY2Vuc2UiKTsKIyB5b3UgbWF5IG5vdCB1c2UgdGhpcyBmaWxlIGV4Y2VwdCBpbiBjb21wbGlhbmNlIHdpdGggdGhlIExpY2Vuc2UuCiMgWW91IG1heSBvYnRhaW4gYSBjb3B5IG9mIHRoZSBMaWNlbnNlIGF0CiMKIyAgIGh0dHA6Ly93d3cuYXBhY2hlLm9yZy9saWNlbnNlcy9MSUNFTlNFLTIuMAojCiMgVW5sZXNzIHJlcXVpcmVkIGJ5IGFwcGxpY2FibGUgbGF3IG9yIGFncmVlZCB0byBpbiB3cml0aW5nLCBzb2Z0d2FyZQojIGRpc3RyaWJ1dGVkIHVuZGVyIHRoZSBMaWNlbnNlIGlzIGRpc3RyaWJ1dGVkIG9uIGFuICJBUyBJUyIgQkFTSVMsCiMgV0lUSE9VVCBXQVJSQU5USUVTIE9SIENPTkRJVElPTlMgT0YgQU5ZIEtJTkQsIGVpdGhlciBleHByZXNzIG9yIGltcGxpZWQuCiMgU2VlIHRoZSBMaWNlbnNlIGZvciB0aGUgc3BlY2lmaWMgbGFuZ3VhZ2UgZ292ZXJuaW5nIHBlcm1pc3Npb25zIGFuZAojIGxpbWl0YXRpb25zIHVuZGVyIHRoZSBMaWNlbnNlLgojCmltcG9ydCB0ZW1wZmlsZQppbXBvcnQgemlwZmlsZQpmcm9tIHR5cGluZyBpbXBvcnQgQW55LCBEaWN0LCBMaXN0LCBUdXBsZSwgVW5pb24KCmltcG9ydCBtbHJ1bgppbXBvcnQgbnVtcHkgYXMgbnAKaW1wb3J0IHRyYW5zZm9ybWVycwpmcm9tIG1scnVuLmZyYW1ld29ya3MuaHVnZ2luZ2ZhY2UgaW1wb3J0IEh1Z2dpbmdGYWNlTW9kZWxTZXJ2ZXIKZnJvbSB0cmFuc2Zvcm1lcnMgaW1wb3J0IEF1dG9Ub2tlbml6ZXIKCkxBQkVMU19PUFRJTUlaRSA9IHswOiAiTkVHQVRJVkUiLCAxOiAiUE9TSVRJVkUifQoKTEFCRUxTID0geyJMQUJFTF8wIjogIk5FR0FUSVZFIiwgIkxBQkVMXzEiOiAiUE9TSVRJVkUifQoKCmRlZiBwcmVwcm9jZXNzKHRleHQ6IFVuaW9uW3N0ciwgYnl0ZXNdKSAtPiBEaWN0OgogICAgIiIiQ29udmVydGluZyBhIHNpbXBsZSB0ZXh0IGludG8gYSBzdHJ1Y3R1cmVkIGJvZHkgZm9yIHRoZSBzZXJ2aW5nIGZ1bmN0aW9uCgogICAgOnBhcmFtIHRleHQ6IFRoZSB0ZXh0IHRvIHByZWRpY3QKICAgICIiIgogICAgcmV0dXJuIHsiaW5wdXRzIjogW3N0cih0ZXh0KV19CgoKZGVmIHBvc3Rwcm9jZXNzKG1vZGVsX3Jlc3BvbnNlOiBEaWN0KSAtPiBMaXN0OgogICAgIiIiVHJhbnNmZXJpbmcgdGhlIHByZWRpY3Rpb24gdG8gdGhlIGdyYWRpbyBpbnRlcmZhY2UuCgogICAgOnBhcmFtIG1vZGVsX3Jlc3BvbnNlOiBBIGRpY3Qgd2l0aCB0aGUgbW9kZWwgb3V0cHV0CiAgICAiIiIKCiAgICBvdXRwdXRzID0gbW9kZWxfcmVzcG9uc2VbIm91dHB1dHMiXVswXQogICAgaWYgaGFzYXR0cihvdXRwdXRzLCAidG9saXN0Iik6CiAgICAgICAgb3V0cHV0cyA9IG91dHB1dHMudG9saXN0KCkKICAgICAgICBjaG9zZW5fbGFiZWwgPSBucC5hcmdtYXgob3V0cHV0cywgYXhpcz0tMSlbMF0uaXRlbSgpCiAgICAgICAgc2NvcmUgPSBvdXRwdXRzWzBdW2Nob3Nlbl9sYWJlbF0KICAgIGVsaWYgaXNpbnN0YW5jZShvdXRwdXRzLCBkaWN0KToKICAgICAgICBjaG9zZW5fbGFiZWwgPSBvdXRwdXRzWyJsYWJlbCJdCiAgICAgICAgc2NvcmUgPSBvdXRwdXRzWyJzY29yZSJdCiAgICBlbHNlOgogICAgICAgIHJhaXNlIG1scnVuLmVycm9ycy5NTFJ1blJ1bnRpbWVFcnJvcigKICAgICAgICAgICAgZiJHb3QgdW5rbm93biBtb2RlbF9yZXNwb25zZSB3aXRoIHt0eXBlKG1vZGVsX3Jlc3BvbnNlKX0gdHlwZS4iCiAgICAgICAgKQoKICAgIHByZWRpY3Rpb24gPSBMQUJFTFMuZ2V0KGNob3Nlbl9sYWJlbCwgTm9uZSkgb3IgTEFCRUxTX09QVElNSVpFLmdldCgKICAgICAgICBjaG9zZW5fbGFiZWwsIE5vbmUKICAgICkKICAgIHJldHVybiBbCiAgICAgICAgIlRoZSBzZW50aW1lbnQgaXMgIiArIHByZWRpY3Rpb24sCiAgICAgICAgIlRoZSBwcmVkaWN0aW9uIHNjb3JlIGlzICIgKyBzdHIoc2NvcmUpLAogICAgXQoKCmNsYXNzIEh1Z2dpbmdGYWNlVG9rZW5pemVyTW9kZWxTZXJ2ZXIoSHVnZ2luZ0ZhY2VNb2RlbFNlcnZlcik6CiAgICBkZWYgbG9hZChzZWxmKToKICAgICAgICAjIExvYWRpbmcgdGhlIHByZXRyYWluZWQgdG9rZW5pemVyOgogICAgICAgIGlmIHNlbGYudG9rZW5pemVyX2NsYXNzOgogICAgICAgICAgICB0b2tlbml6ZXJfb2JqZWN0ID0gZ2V0YXR0cih0cmFuc2Zvcm1lcnMsIHNlbGYudG9rZW5pemVyX2NsYXNzKQogICAgICAgICAgICBzZWxmLl90b2tlbml6ZXIgPSB0b2tlbml6ZXJfb2JqZWN0LmZyb21fcHJldHJhaW5lZChzZWxmLnRva2VuaXplcl9uYW1lKQogICAgICAgIGVsc2U6CiAgICAgICAgICAgIHNlbGYuX3Rva2VuaXplciA9IEF1dG9Ub2tlbml6ZXIuZnJvbV9wcmV0cmFpbmVkKHNlbGYudG9rZW5pemVyX25hbWUpCgogICAgZGVmIHByZWRpY3Qoc2VsZiwgcmVxdWVzdDogRGljdFtzdHIsIEFueV0pIC0+IHN0cjoKICAgICAgICBwcmludChyZXF1ZXN0KQogICAgICAgIHRva2VuaXplZF9zYW1wbGVzOiBEaWN0ID0gc2VsZi5fdG9rZW5pemVyKHJlcXVlc3RbImlucHV0cyJdLCB0cnVuY2F0aW9uPVRydWUpCiAgICAgICAgcmVxdWVzdFsiaW5wdXRzIl0gPSBbCiAgICAgICAgICAgIHZhbCBpZiBpc2luc3RhbmNlKHZhbFswXSwgbGlzdCkgZWxzZSBbdmFsXQogICAgICAgICAgICBmb3IgdmFsIGluIHRva2VuaXplZF9zYW1wbGVzLnZhbHVlcygpCiAgICAgICAgXQogICAgICAgIHByaW50KHJlcXVlc3QpCiAgICAgICAgcmV0dXJuIHJlcXVlc3QKCiAgICBkZWYgcG9zdHByb2Nlc3Moc2VsZiwgcmVxdWVzdDogRGljdCkgLT4gRGljdDoKICAgICAgICBwcmludChmInBvc3Rwcm9jZXNzIDoge3JlcXVlc3R9IikKICAgICAgICByZXF1ZXN0WyJpbnB1dHMiXSA9IHJlcXVlc3RbIm91dHB1dHMiXVsiaW5wdXRzIl0KICAgICAgICByZXR1cm4gcmVxdWVzdAoKZnJvbSBtbHJ1bi5ydW50aW1lcyBpbXBvcnQgbnVjbGlvX2luaXRfaG9vawpkZWYgaW5pdF9jb250ZXh0KGNvbnRleHQpOgogICAgbnVjbGlvX2luaXRfaG9vayhjb250ZXh0LCBnbG9iYWxzKCksICdzZXJ2aW5nX3YyJykKCmRlZiBoYW5kbGVyKGNvbnRleHQsIGV2ZW50KToKICAgIHJldHVybiBjb250ZXh0Lm1scnVuX2hhbmRsZXIoY29udGV4dCwgZXZlbnQpCg==
+          source: ./
+          commands: []
+          code_origin: git://github.com/davesh0812/mlrun-huggingface-demo.git#refs/heads/main#38415cba3f4ebd173df929d0d0ddaafc1c96f196
+          origin_filename: src/serving.py
+        description: ''
+        default_handler: ''
+        disable_auto_mount: false
+        env: []
+        resources:
+          requests:
+            memory: 1Mi
+            cpu: 25m
+          limits:
+            memory: 20Gi
+            cpu: '2'
+        priority_class_name: igz-workload-medium
+        preemption_mode: prevent
+        min_replicas: 1
+        max_replicas: 4
+        source: ''
+        function_kind: serving_v2
+        function_handler: serving:handler
+        base_image_pull: false
+        secret_sources: []
+        affinity: null
+        tolerations: null
+        security_context: {}
+      verbose: false
+  - name: serving-trained-onnx
+    spec:
+      kind: serving
+      metadata:
+        name: serving-trained-onnx
+        project: huggingface-demo-iguazio
+        categories: []
+      spec:
+        command: ''
+        args: []
+        image: ''
+        build:
+          source: ./
+          commands: []
+          code_origin: git://github.com/davesh0812/mlrun-huggingface-demo.git#refs/heads/main#2483d5f12f61e35e140a19015521056d4ff1a237
+        description: ''
+        disable_auto_mount: false
+        env: []
+        resources:
+          requests:
+            memory: 1Mi
+            cpu: 25m
+          limits:
+            memory: 20Gi
+            cpu: '2'
+        priority_class_name: igz-workload-medium
+        preemption_mode: prevent
+        min_replicas: 1
+        max_replicas: 4
+        source: ''
+        function_kind: serving_v2
+        base_image_pull: false
+        secret_sources: []
+        affinity: null
+        tolerations: null
+        security_context: {}
+      verbose: false
+  workflows:
+  - path: src/training_workflow.py
+    name: training_workflow
+  artifacts: []
+  source: git://github.com/davesh0812/mlrun-huggingface-demo.git#main
+  origin_url: git://github.com/davesh0812/mlrun-huggingface-demo.git#refs/heads/main
+  load_source_on_run: true
+  desired_state: online
+  default_image: davesh0812/mlrun:huggingface-mlrun-demo
+status:
+  state: online
