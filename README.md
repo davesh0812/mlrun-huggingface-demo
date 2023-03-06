@@ -10,9 +10,8 @@ This project demonstrates how to build an ML application and use MLOps to operat
 
 The project contains four notebooks, in the following order:
 
-- [**Data preparation, training and evaluating a model**](old_notebook/01-dataprep-train-test.ipynb)
-- [**Application Serving Pipeline**](old_notebook/02-serving-pipeline.ipynb)
-- [**Pipeline Automation**](old_notebook/03-automation.ipynb)
+- [**Application Serving Pipeline**](01-serving.ipynb)
+- [**Pipeline Automation**](02-model-tuning.ipynb)
 
 You can find the python source code under [/src](./src)
 
