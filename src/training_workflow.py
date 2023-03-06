@@ -74,7 +74,7 @@ def kfpipeline(
         handler="src.serving.postprocess", name="postprocess"
     ).respond()
 
-    # project.set_function(serving_function, with_repo=True)
+    project.set_function(serving_function, with_repo=True)
 
     # Enable model monitoring
     serving_function.set_tracking()
