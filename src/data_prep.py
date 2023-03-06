@@ -35,11 +35,11 @@ def prepare_dataset(
 
     # Loading and editing dataset:
     dataset = load_dataset(dataset_name)
-    small_train_dataset = dataset["train"].shuffle(seed=42).select(list(range(200)))
+    small_train_dataset = dataset["train"].shuffle(seed=42).select(list(range(3000)))
     small_train_dataset = _edit_columns(
         small_train_dataset, drop_columns, rename_columns
     )
-    small_test_dataset = dataset["test"].shuffle(seed=42).select(list(range(20)))
+    small_test_dataset = dataset["test"].shuffle(seed=42).select(list(range(300)))
     small_test_dataset = _edit_columns(small_test_dataset, drop_columns, rename_columns)
 
     return small_train_dataset.to_pandas(), small_test_dataset.to_pandas()
